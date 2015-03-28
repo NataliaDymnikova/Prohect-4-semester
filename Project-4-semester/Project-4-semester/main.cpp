@@ -1,24 +1,24 @@
-#include <opencv\cv.h>
-#include <opencv\highgui.h>
+#include <iostream>
+#include "BoolPicture.h"
 
-using namespace cv;
-
-/// Convert imageColor to black and white image.
-Mat convertToBlackAndWhite(Mat imageColor) {
-	// imageColor -> imageGrey -> imageBlackAndWhite. 
-	Mat imageGrey;
-	cvtColor(imageColor, imageGrey, CV_RGB2GRAY);
-	return imageGrey > 128;
-}
+using namespace std;
 
 int main() {
-	// imageColor -> imageGrey -> imageBW. 
-	Mat imageColor = imread("../00.jpg");
-	Mat imageBW = convertToBlackAndWhite(imageColor);
-	namedWindow("window");
+	BoolPicture *picture = new BoolPicture("../1.png");
+	bool **boolPic = picture->getPicture();
+	for (int i = 0; i < picture->getHeight(); i++) {
+		for (int j = 0; j < picture->getWidth(); j++) {
+			cout << boolPic[i][j] ? "0" : "1";
+		}
+		cout << endl;
+	}
+/*	namedWindow("window");
 	imshow("window", imageBW);
 	int k = 0;
 	while (k != '0')
 		k = cvWaitKey();
+	*/
+
+	delete picture;
 	return 0;
 }
