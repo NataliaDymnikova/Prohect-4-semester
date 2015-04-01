@@ -6,11 +6,11 @@ BoolPicture::BoolPicture(string nameOfPicture)
 	width = imageColor.cols;
 	height = imageColor.rows;
 	Mat imageBW = convertToBlackAndWhite(imageColor);
-	namedWindow("window");
-	imshow("window", imageBW);
-	int k = 0;
+	//namedWindow("window");
+	//imshow("window", imageBW);
+/*	int k = 0;
 	while (k != '0')
-		k = cvWaitKey();
+		k = cvWaitKey();*/
 	picture = convertBWToBool(imageBW);
 
 }

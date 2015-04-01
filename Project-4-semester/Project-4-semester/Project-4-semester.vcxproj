@@ -20,10 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BoolPicture.cpp" />
+    <ClCompile Include="Contours.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SearchRelations.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoolPicture.h" />
+    <ClInclude Include="Contours.h" />
+    <ClInclude Include="SearchRelations.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DA44A5A7-5461-443B-9D87-9B76F0D54C7E}</ProjectGuid>

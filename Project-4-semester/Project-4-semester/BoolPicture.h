@@ -1,7 +1,6 @@
 #pragma warning(disable:4496)
 #include <opencv\cv.h>
 #include <opencv\highgui.h>
-#include <string>        
 
 using namespace cv;
 
