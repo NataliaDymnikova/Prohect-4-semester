@@ -1,6 +1,8 @@
 #include <iostream>
 #include "BoolPicture.h"
 #include "Contours.h"
+#include "Lines.h"
+#include "SearchRelations.h"
 
 using namespace std;
 
@@ -20,8 +22,13 @@ int main() {
 		k = cvWaitKey();
 	*/
 	Contours *cont = new Contours();
+	Lines *lines = new Lines(cont->imageContour);
+	cvDestroyAllWindows();
+
+	SearchRelations *search = new SearchRelations(lines->linesList, cont->all);
 
 	delete picture;
 	delete cont;
+	delete lines;
 	return 0;
 }

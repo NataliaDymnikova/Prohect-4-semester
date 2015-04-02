@@ -1,7 +1,7 @@
 #include "Contours.h"
 #include <stdlib.h>
 #include <stdio.h>
-
+#include "SearchRelations.h"
 Contours::Contours()
 {
 	// получаем картинку
@@ -55,7 +55,7 @@ Contours::~Contours()
 	cvReleaseImage(&image);
 	cvReleaseImage(&gray);
 	cvReleaseImage(&bin);
-	cvReleaseImage(&dst);
+	//cvReleaseImage(&dst);
 	// удаляем окна
 	cvDestroyAllWindows();
 }
@@ -69,25 +69,27 @@ IplImage *Contours::findCircles(IplImage* _image)
 
 	Mat bin2;
 	cvtColor((Mat)image, bin2, CV_RGB2GRAY);
-	bin2 = bin2 > 200;
+	bin2 = bin2 < 200;
 	IplImage *bin = new IplImage(bin2);
+
+	cvNamedWindow("BAndW");
+	cvShowImage("BAndW", bin);
 
 	cvCanny(bin, bin, 50, 200);
 
 	// хранилище памяти для контуров
 	CvMemStorage* storage = cvCreateMemStorage(0);
-	CvSeq* contours = 0;
-
+	
 	// находим контуры
 	int contoursCont = cvFindContours(bin, storage, &contours, sizeof(CvContour), CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 	contours = cvApproxPoly(contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 0, 1);//Апроксимация контуров
 	
 	assert(contours != 0);
-	IplImage *imageContour = cvCreateImage(cvGetSize(_image), IPL_DEPTH_8U, 1);
-	
-	int i = 0;
-	// рисуем все контуры
-	cvDrawContours(imageContour, contours, cvScalar(0, 0, 200), cvScalar(0, 200, 0), 10, 1, 0);
+	imageContour = cvCreateImage(cvGetSize(_image), IPL_DEPTH_8U, 1);
+	cvDrawContours(imageContour, contours, cvScalar(0, 0, 200), cvScalar(200, 0, 0), 1, 1, 8);
+
+	//int i = 0;
+		
 	/*
 	for (CvSeq* current = contours; current != NULL; current = current->h_next){
 		// вычисляем площадь и периметр контура
@@ -111,10 +113,31 @@ IplImage *Contours::findCircles(IplImage* _image)
 
 	cvNamedWindow("contour");
 	cvShowImage("contour", imageContour);
-
+	allContours(contours);
 	// освобождаем ресурсы
 	cvReleaseMemStorage(&storage);
 	//cvReleaseImage(&bin);
 
 	return imageContour;
+}
+
+void Contours::allContours(CvSeq *contours) {
+	IplImage *imageContour = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	all = new list<IplImage*>();
+
+	recAllContours(contours);
+
+}
+
+void Contours::recAllContours(CvSeq* current) {
+	if (current == nullptr)
+		return;
+	CvSeq* current2 = current;
+	if (current->h_next != nullptr)
+		recAllContours(current->h_next);
+	if (current->v_next != nullptr)
+		recAllContours(current->v_next);
+	IplImage *tmp = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	cvDrawContours(tmp, current2, cvScalar(0, 0, 200), cvScalar(0, 0, 200), 0, 1, 0);
+	all->push_back(tmp);
 }

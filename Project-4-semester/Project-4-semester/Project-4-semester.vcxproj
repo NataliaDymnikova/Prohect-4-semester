@@ -21,12 +21,14 @@
   <ItemGroup>
     <ClCompile Include="BoolPicture.cpp" />
     <ClCompile Include="Contours.cpp" />
+    <ClCompile Include="Lines.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SearchRelations.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoolPicture.h" />
     <ClInclude Include="Contours.h" />
+    <ClInclude Include="Lines.h" />
     <ClInclude Include="SearchRelations.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
