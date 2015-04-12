@@ -11,17 +11,38 @@ class Contours
 public:
 	Contours();
 	~Contours();
-	IplImage *findCircles(IplImage *image);
-	IplImage* image = 0;
-	IplImage* gray = 0;
-	IplImage* bin = 0;
-	IplImage* dst = 0;
-	CvSeq* contours = 0;
-	IplImage *imageContour;
-
+	// Contours
+	IplImage *imageContour = 0;
+	// All contours as image
 	list<IplImage*> *all;
 
-	void allContours(CvSeq *contours);
+private:
+	// Result on contours
+	void findContours();
+	// Result on circles
+	void findCircles();
+	// Result in imageRectangles
+	void findRectangles();
+	// Is circle or not
+	bool isCircle(CvSeq *cont);
+
+	// Image
+	IplImage* image = 0;
+	// First in contours
+	CvSeq* contours = 0;
+	// Image with circles
+	IplImage *imageCircles = 0;
+	// Circles
+	CvSeq *circles = 0;
+	// Image with rectangles
+	IplImage *imageRectangles = 0;
+	// All contours
+	list<CvSeq *> *allContoursSeq = 0;
+	
+	// Delete same contours.
+	void deleteContours();
+
+	void allContours();
 	void recAllContours(CvSeq* current);
 };
 
