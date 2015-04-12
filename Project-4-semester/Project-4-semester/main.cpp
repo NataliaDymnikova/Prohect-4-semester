@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-	BoolPicture *picture = new BoolPicture("../1.png");
+	BoolPicture *picture = new BoolPicture("../4.png");
 	bool **boolPic = picture->getPicture();
 	/*for (int i = 0; i < picture->getHeight(); i++) {
 		for (int j = 0; j < picture->getWidth(); j++) {

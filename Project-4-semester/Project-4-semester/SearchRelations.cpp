@@ -35,13 +35,13 @@ SearchRelations::SearchRelations(list<vector<int>> *lines, list<IplImage*> *all)
 			}
 		}
 
-		cvDestroyAllWindows();
+/*		cvDestroyAllWindows();
 		cvNamedWindow("line");
 		cvNamedWindow("contour");
 		cvNamedWindow("dif");
 		cvShowImage("line", linePic);
 		cvShowImage("contour", minDifPic);
-		waitKey(0);
+	*/	waitKey(0);
 	}
 }
 
