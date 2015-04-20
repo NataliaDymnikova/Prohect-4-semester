@@ -78,9 +78,12 @@ void Contours::findCircles() {
 		
 		// круги
 		// 1/4*CV_PI = 0,079577
-		if (area / (perim * perim) > 0.06 && area / (perim * perim) < 1.0){
+		if (area / (perim * perim) > 0.065 && area / (perim * perim) < 0.85){
 			// нарисуем контур
-			cvDrawCircle(imageCircles, /*!!!center!!!*/cvPoint(350,140), (int)(perim/2/CV_PI), cvScalar(0,0,0), 1, 8);
+			CvPoint2D32f center;
+			float radius;
+			cvMinEnclosingCircle(current, &center, &radius);
+			cvDrawCircle(imageCircles, cvPoint((int)center.x, (int)center.y), radius, cvScalar(0,0,0), 1, 8);
 			if (circles == nullptr) {
 				circles = new CvSeq(*current);
 				circles->h_next = circles->h_prev = circles->v_next = circles->v_prev = nullptr;
@@ -126,9 +129,15 @@ void Contours::findRectangles() {
 		if (isCircle(current))
 			continue;
 		// ≈сли граница внутренн€€
-		CvRect rect = cvBoundingRect(current, 0);
+		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
 		i++;
-		cvDrawRect(imageRectangles, cvPoint(rect.x, rect.y), cvPoint(rect.x+rect.width, rect.y+rect.height), cvScalar(0,0,0), 2);
+		double area = fabs(cvContourArea(current));
+		double area2 = rect->height * rect->width;
+		if (area2 < 1.3 * area)
+			cvDrawRect(imageRectangles, cvPoint(rect->x, rect->y)
+			, cvPoint(rect->x + rect->width, rect->y + rect->height)
+			, cvScalar(0, 0, 0), 1);
+
 	}
  }
 
