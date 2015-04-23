@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "SearchRelations.h"
+
 Contours::Contours()
 {
 	// получаем картинку
@@ -14,6 +15,8 @@ Contours::Contours()
 	cvShowImage("Circle", imageCircles);
 	findRectangles();
 	cvShowImage("Rectangles", imageRectangles);
+	findRelations();
+	cvShowImage("Relations", imageRelations);
 	cvWaitKey(0);
 }
 
@@ -42,10 +45,12 @@ void Contours::findContours()
 
 	Mat bin2;
 	cvtColor((Mat)image, bin2, CV_RGB2GRAY);
-	bin2 = bin2 < 200;
+	bin2 = bin2 < 178;
 	IplImage *bin = new IplImage(bin2);
+	imageBW = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	cvCopy(bin, imageBW);
 
-	cvCanny(bin, bin, 50, 200);
+	//cvCanny(bin, bin, 50, 200);
 	// хранилище памяти для контуров
 	CvMemStorage* storage = cvCreateMemStorage(0);
 	
@@ -174,4 +179,27 @@ void Contours::deleteContours() {
 		i++;
 	}
   	allContoursSeq = newSeq;
+}
+
+void Contours::findRelations() {
+	if (imageRelations != nullptr)
+		return;
+	
+	imageRelations = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	cvCopyImage(imageBW, imageRelations);
+	// хранилище памяти для контуров
+	int i = 0;
+	 
+	for each (CvSeq *current in *allContoursSeq) {
+		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
+		double area = fabs(cvContourArea(current));
+		double area2 = rect->height * rect->width;
+		if (isCircle(current) || area2 < 1.3 * area) {
+			i++;
+			cvDrawRect(imageRelations, cvPoint(rect->x - 10, rect->y - 10)
+				, cvPoint(rect->x + rect->width + 10, rect->y + rect->height + 10)
+				, cvScalar(0, 0, 0), CV_FILLED);
+		}
+
+	}
 }

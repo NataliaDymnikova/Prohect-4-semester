@@ -25,7 +25,11 @@ private:
 	void findRectangles();
 	// Is circle or not
 	bool isCircle(CvSeq *cont);
+	//
+	void findRelations();
 
+	// Black And White
+	IplImage* imageBW = 0;
 	// Image
 	IplImage* image = 0;
 	// First in contours
@@ -36,6 +40,8 @@ private:
 	CvSeq *circles = 0;
 	// Image with rectangles
 	IplImage *imageRectangles = 0;
+	// Image with relations
+	IplImage *imageRelations = 0;
 	// All contours
 	list<CvSeq *> *allContoursSeq = 0;
 	

@@ -4,7 +4,7 @@
 Lines::Lines(IplImage *imageContour)
 {
 	linesList = new std::list<vector<int>>();
-	image = cvLoadImage("../3.png", CV_LOAD_IMAGE_ANYCOLOR);
+	image = cvLoadImage("../5.png", CV_LOAD_IMAGE_ANYCOLOR);
 
 	assert(image != 0);
 
