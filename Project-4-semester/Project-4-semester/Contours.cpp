@@ -17,7 +17,10 @@ Contours::Contours()
 	cvShowImage("Rectangles", imageRectangles);
 	findRelations();
 	cvShowImage("Relations", imageRelations);
+	makeResult();
+	cvShowImage("Result", result);
 	cvWaitKey(0);
+	
 }
 
 
@@ -39,66 +42,32 @@ Contours::~Contours()
 void Contours::findContours()
 {
 	assert(image != 0);
-
-	//cvNamedWindow("real");
 	cvShowImage("real", image);
 
+	// to black and white. 
 	Mat bin2;
 	cvtColor((Mat)image, bin2, CV_RGB2GRAY);
-	bin2 = bin2 < 178;
-	IplImage *bin = new IplImage(bin2);
+	bin2 = bin2 > 178;
 	imageBW = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	IplImage *bin = new IplImage(bin2);
 	cvCopy(bin, imageBW);
 
-	//cvCanny(bin, bin, 50, 200);
 	// хранилище памяти для контуров
 	CvMemStorage* storage = cvCreateMemStorage(0);
 	
 	// находим контуры
-	int contoursCont = cvFindContours(bin, storage, &contours, sizeof(CvContour), CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+	cvFindContours(bin, storage, &contours, sizeof(CvContour), CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 	contours = cvApproxPoly(contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 0, 1);//Апроксимация контуров
-	
 	assert(contours != 0);
+
 	imageContour = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	//cvDrawContours(imageContour, contours, cvScalar(0, 0, 200), cvScalar(200, 0, 0), 8, 1, 8);
 
 	allContours(); 
-	// освобождаем ресурсы
-	//cvReleaseMemStorage(&storage);
-	//cvReleaseImage(&bin);
+	
 	int i = 0;
 	for each (CvSeq *current in *allContoursSeq) {
 		cvDrawContours(imageContour, current, cvScalar(0,0,0), cvScalar(0,0,0), 0, 1);
-		//cvShowImage("contours", imageContour);
-	}
-}
-
-void Contours::findCircles() {
-	imageCircles = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	
-	for each (CvSeq *current in *allContoursSeq) {
-		// вычисляем площадь и периметр контура
-		double area = fabs(cvContourArea(current));
-		double perim = cvContourPerimeter(current);
-		
-		// круги
-		// 1/4*CV_PI = 0,079577
-		if (area / (perim * perim) > 0.065 && area / (perim * perim) < 0.85){
-			// нарисуем контур
-			CvPoint2D32f center;
-			float radius;
-			cvMinEnclosingCircle(current, &center, &radius);
-			cvDrawCircle(imageCircles, cvPoint((int)center.x, (int)center.y), radius, cvScalar(0,0,0), 1, 8);
-			if (circles == nullptr) {
-				circles = new CvSeq(*current);
-				circles->h_next = circles->h_prev = circles->v_next = circles->v_prev = nullptr;
-			}
-			else {
-				CvSeq *temp = circles->h_next;
-				circles->h_next = current;
-				circles->h_next = temp;
-			}
-		}
 	}
 }
 
@@ -125,39 +94,13 @@ void Contours::recAllContours(CvSeq* current) {
 	all->push_back(tmp);
 }
 
-void Contours::findRectangles() {
-	if (imageRectangles == nullptr) 
-		imageRectangles = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	// хранилище памяти для контуров
-	int i = 0;
-	for each (CvSeq *current in *allContoursSeq) {
-		if (isCircle(current))
-			continue;
-		// Если граница внутренняя
-		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
-		i++;
-		double area = fabs(cvContourArea(current));
-		double area2 = rect->height * rect->width;
-		if (area2 < 1.3 * area)
-			cvDrawRect(imageRectangles, cvPoint(rect->x, rect->y)
-			, cvPoint(rect->x + rect->width, rect->y + rect->height)
-			, cvScalar(0, 0, 0), 1);
-
-	}
- }
-
-bool Contours::isCircle(CvSeq *cont) {
-	for (CvSeq* current = circles; current != NULL; current = current->h_next)
-		if (current->total == cont->total)
-			return true;
-	return false;
-}
-
 void Contours::deleteContours() {
 	list<CvSeq *> *newSeq = new list<CvSeq *>();
 	bool flag = false;
 	int i = 0;
 	int j = 0;
+	// delete first contour - contour of image
+	allContoursSeq->pop_front();
 	for each (CvSeq *current in *allContoursSeq) {
 		CvRect rect1 = cvBoundingRect(current);
 		flag = false;
@@ -181,25 +124,115 @@ void Contours::deleteContours() {
   	allContoursSeq = newSeq;
 }
 
-void Contours::findRelations() {
-	if (imageRelations != nullptr)
-		return;
-	
-	imageRelations = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	cvCopyImage(imageBW, imageRelations);
-	// хранилище памяти для контуров
+void Contours::findCircles() {
+	imageCircles = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	circles = new list<CvSeq*>();
+
+	for each (CvSeq *current in *allContoursSeq) {
+		// вычисляем площадь и периметр контура
+		double area = fabs(cvContourArea(current));
+		double perim = cvContourPerimeter(current);
+		// 1/4*CV_PI = 0,079577
+		if (area / (perim * perim) > 0.065 && area / (perim * perim) < 0.85){
+			CvPoint2D32f center;
+			float radius;
+			cvMinEnclosingCircle(current, &center, &radius);
+			cvDrawCircle(imageCircles, cvPoint(center.x, center.y), radius, cvScalar(0, 0, 0));
+
+			circles->push_back(current);
+		}
+	}
+}
+
+bool Contours::isCircle(CvSeq *cont) {
+	for each (CvSeq* current in *circles)
+		if (current->total == cont->total)
+			return true;
+	return false;
+}
+
+void Contours::findRectangles() {
+	imageRectangles = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	rectangles = new list<CvRect *>();
 	int i = 0;
-	 
+	for each (CvSeq *current in *allContoursSeq) {
+		if (isCircle(current))
+			continue;
+		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
+		i++;
+		double area = fabs(cvContourArea(current));
+		double area2 = rect->height * rect->width;
+		if (area2 < 1.275 * area) {
+			rectangles->push_back(rect);
+			cvDrawRect(imageRectangles, cvPoint(rect->x, rect->y)
+				, cvPoint(rect->x + rect->width, rect->y + rect->height)
+				, cvScalar(0, 0, 0), 1);
+		}
+
+	}
+}
+
+void Contours::findRelations() {
+	imageRelations = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	cvDrawRect(imageRelations, cvPoint(0,0), cvPoint(image->width, image->height)
+		, cvScalar(255, 255, 255), CV_FILLED);
+	IplImage *imageLines = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	cvCopyImage(imageBW, imageLines);
+	linesList = new list<vector<int>>();
+
 	for each (CvSeq *current in *allContoursSeq) {
 		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
 		double area = fabs(cvContourArea(current));
 		double area2 = rect->height * rect->width;
 		if (isCircle(current) || area2 < 1.3 * area) {
-			i++;
-			cvDrawRect(imageRelations, cvPoint(rect->x - 10, rect->y - 10)
+			cvDrawRect(imageLines, cvPoint(rect->x - 10, rect->y - 10)
 				, cvPoint(rect->x + rect->width + 10, rect->y + rect->height + 10)
-				, cvScalar(0, 0, 0), CV_FILLED);
+				, cvScalar(255, 255, 255), CV_FILLED);
 		}
-
 	}
+
+	CvMemStorage* storage = cvCreateMemStorage(0);
+	Mat bin2 = (Mat)imageLines < 178;
+	imageLines = new IplImage(bin2);
+	cvCanny(imageLines, imageLines, 0, 256);
+	
+	CvSeq *lines = cvHoughLines2(imageLines, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 1, 20, 30);
+	// нарисуем найденные линии
+	for (int i = 0; i < lines->total; i++){
+		CvPoint* line = (CvPoint*)cvGetSeqElem(lines, i);
+		if (!canAddONot(line))
+			continue;
+		cvLine(imageRelations, line[0], line[1], CV_RGB(0, 0, 0), 1, CV_AA, 0);
+
+		vector<int> pointers;
+		pointers.push_back(line[0].x);
+		pointers.push_back(line[0].y);
+		pointers.push_back(line[1].x);
+		pointers.push_back(line[1].y);
+		linesList->push_back(pointers);
+	}
+}
+
+
+bool Contours::canAddONot(CvPoint *newLine) {
+	for each (vector<int> line in *linesList) {
+		if (fabs(fabs((double)newLine[0].x - line[0]) + fabs((double)newLine[0].y - line[1])
+			+ fabs((double)newLine[1].x - line[2]) + fabs((double)newLine[1].y - line[3])) < 50)
+			return false;
+	}
+	return true;
+}
+
+void Contours::makeResult() {
+	result = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	cvCopy(imageCircles, result);
+	for each (CvRect *rect in *rectangles)
+		cvDrawRect(result, cvPoint(rect->x, rect->y)
+			, cvPoint(rect->x + rect->width + 10, rect->y + rect->height + 10)
+			, cvScalar(0, 0, 0));
+	for each (vector<int> vec in *linesList)
+		cvDrawLine(result
+			, cvPoint(vec.at(0), vec.at(1)), cvPoint(vec.at(2), vec.at(3))
+			, cvScalar(0,0,0));
+	
 }

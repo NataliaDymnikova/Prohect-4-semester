@@ -25,8 +25,12 @@ private:
 	void findRectangles();
 	// Is circle or not
 	bool isCircle(CvSeq *cont);
-	//
+	// Result in imageRelations
 	void findRelations();
+	// Can add new line or not
+	bool canAddONot(CvPoint *newLine);
+	// Make result picture
+	void makeResult();
 
 	// Black And White
 	IplImage* imageBW = 0;
@@ -36,15 +40,23 @@ private:
 	CvSeq* contours = 0;
 	// Image with circles
 	IplImage *imageCircles = 0;
-	// Circles
-	CvSeq *circles = 0;
 	// Image with rectangles
 	IplImage *imageRectangles = 0;
 	// Image with relations
 	IplImage *imageRelations = 0;
+	// Image of result
+	IplImage *result = 0;
+
+
 	// All contours
 	list<CvSeq *> *allContoursSeq = 0;
-	
+	// Rectangles
+	list<CvRect *> *rectangles = 0;
+	// Circles
+	list<CvSeq *> *circles = 0;
+	// Lines
+	list<vector<int>> *linesList = 0;
+
 	// Delete same contours.
 	void deleteContours();
 

@@ -7,8 +7,8 @@
 using namespace std;
 
 int main() {
-	BoolPicture *picture = new BoolPicture("../4.png");
-	bool **boolPic = picture->getPicture();
+	//BoolPicture *picture = new BoolPicture("../4.png");
+	//bool **boolPic = picture->getPicture();
 	/*for (int i = 0; i < picture->getHeight(); i++) {
 		for (int j = 0; j < picture->getWidth(); j++) {
 			cout << boolPic[i][j] ? "0" : "1";
@@ -27,7 +27,7 @@ int main() {
 
 	//SearchRelations *search = new SearchRelations(lines->linesList, cont->all);
 
-	delete picture;
+	//delete picture;
 	delete cont;
 	//delete lines;
 	return 0;
