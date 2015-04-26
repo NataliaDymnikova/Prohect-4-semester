@@ -155,7 +155,7 @@ void Contours::findRectangles() {
 	imageRectangles = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	rectangles = new list<CvRect *>();
 	int i = 0;
-	for each (CvSeq *current in *allContoursSeq) {
+	for (CvSeq *current : *allContoursSeq) {
 		if (isCircle(current))
 			continue;
 		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
@@ -174,8 +174,6 @@ void Contours::findRectangles() {
 
 void Contours::findRelations() {
 	imageRelations = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	cvDrawRect(imageRelations, cvPoint(0,0), cvPoint(image->width, image->height)
-		, cvScalar(255, 255, 255), CV_FILLED);
 	IplImage *imageLines = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	cvCopyImage(imageBW, imageLines);
 	linesList = new list<vector<int>>();
@@ -185,8 +183,8 @@ void Contours::findRelations() {
 		double area = fabs(cvContourArea(current));
 		double area2 = rect->height * rect->width;
 		if (isCircle(current) || area2 < 1.3 * area) {
-			cvDrawRect(imageLines, cvPoint(rect->x - 10, rect->y - 10)
-				, cvPoint(rect->x + rect->width + 10, rect->y + rect->height + 10)
+			cvDrawRect(imageLines, cvPoint(rect->x - 5, rect->y - 5)
+				, cvPoint(rect->x + rect->width + 5, rect->y + rect->height + 5)
 				, cvScalar(255, 255, 255), CV_FILLED);
 		}
 	}
@@ -203,7 +201,6 @@ void Contours::findRelations() {
 		if (!canAddONot(line))
 			continue;
 		cvLine(imageRelations, line[0], line[1], CV_RGB(0, 0, 0), 1, CV_AA, 0);
-
 		vector<int> pointers;
 		pointers.push_back(line[0].x);
 		pointers.push_back(line[0].y);
@@ -211,6 +208,9 @@ void Contours::findRelations() {
 		pointers.push_back(line[1].y);
 		linesList->push_back(pointers);
 	}
+
+	// ≈сли две линии пересекаютс€ - сделать их одной.
+	// —делать 4 линии - оставить самую длинную
 }
 
 
@@ -228,11 +228,25 @@ void Contours::makeResult() {
 	cvCopy(imageCircles, result);
 	for each (CvRect *rect in *rectangles)
 		cvDrawRect(result, cvPoint(rect->x, rect->y)
-			, cvPoint(rect->x + rect->width + 10, rect->y + rect->height + 10)
+			, cvPoint(rect->x + rect->width, rect->y + rect->height)
 			, cvScalar(0, 0, 0));
 	for each (vector<int> vec in *linesList)
 		cvDrawLine(result
 			, cvPoint(vec.at(0), vec.at(1)), cvPoint(vec.at(2), vec.at(3))
 			, cvScalar(0,0,0));
 	
+}
+
+void Contours::findFlags() {
+	imageFlagsIn = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	
+	for each (CvSeq *current in *allContoursSeq) {
+		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
+		double area = fabs(cvContourArea(current));
+		double area2 = rect->height * rect->width;
+		if (isCircle(current) || area2 < 1.3 * area) {
+			continue;
+		}
+
+	}
 }

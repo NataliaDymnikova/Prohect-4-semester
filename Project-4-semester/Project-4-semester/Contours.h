@@ -31,6 +31,10 @@ private:
 	bool canAddONot(CvPoint *newLine);
 	// Make result picture
 	void makeResult();
+	// Result in imageFlagsIn
+	void findFlags();
+	// Result in imageFlagsOut
+	//void findFlagsOut();
 
 	// Black And White
 	IplImage* imageBW = 0;
@@ -46,7 +50,10 @@ private:
 	IplImage *imageRelations = 0;
 	// Image of result
 	IplImage *result = 0;
-
+	// Image of flagsOutside
+	IplImage *imageFlagsOut = 0;
+	// Image of flagsInside
+	IplImage *imageFlagsIn = 0;
 
 	// All contours
 	list<CvSeq *> *allContoursSeq = 0;
@@ -56,6 +63,9 @@ private:
 	list<CvSeq *> *circles = 0;
 	// Lines
 	list<vector<int>> *linesList = 0;
+	// Flags in
+	//list<
+	// Flags out
 
 	// Delete same contours.
 	void deleteContours();
