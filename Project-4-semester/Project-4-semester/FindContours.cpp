@@ -86,12 +86,12 @@ void FindContours::findContours()
 
 			cvDrawPolyLine(result, countours, countours_n, 4, 1, cvScalar(0, 0, 0));
 		}
-		/*else if (isFlagIn(current)) {
+		else if (isFlagIn(current)) {
 			cvDrawContours(result, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
 		}
 		else if (isFlagOut(current)) {
 			cvDrawContours(result, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
-		}*/
+		}
 	}
 }
 
@@ -176,26 +176,14 @@ bool FindContours::isRhomb(CvSeq *current) {
 }
 
 bool FindContours::isFlagIn(CvSeq *current) {
-	Mat seq;
-	cvCvtSeqToArray(current, &seq);
+	CvRect rect = cvBoundingRect(current, 0);
+	IplImage *im = cvCreateImage(cvSize(rect.width, rect.height), IPL_DEPTH_8U, 1);
+	cvDrawContours(im, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
+	Mat seq = Mat(im) < 128;
 	bool **seqBool = BoolPicture::convertBWToBool(seq);
 	int width = seq.cols;
 	int height = seq.rows;
-
-	/*uchar **array = new uchar*[height];
-	bool **seqBool = new bool*[height];
-	for (int i = 0; i < height; i++) {
-		array[i] = new uchar[width];
-		seqBool[i] = new bool[width];
-	}
-	for (int i = 0; i < height; i++) {
-		//array[i] = seq.ptr<uchar>(i);
-		for (int j = 0; j < width; j++) {
-			array[i][j] = seq.at<uchar>(i, j);
-			seqBool[i][j] = array[i][j];
-		}
-	}
-	*/
+	
 	for (int i = 0; i < width; i++)
 		if (countTrue(true, i, seqBool, height) > 2) {
 			return false;
@@ -210,18 +198,27 @@ bool FindContours::isFlagIn(CvSeq *current) {
 }
 
 bool FindContours::isFlagOut(CvSeq *current) {
-	Mat *seq = (Mat *)current;
 	CvRect rect = cvBoundingRect(current, 0);
-	bool **seqBool = BoolPicture::convertBWToBool(*seq);
-	int width = rect.width;
-	int height = rect.height;
+	IplImage *im = cvCreateImage(cvSize(rect.width, rect.height), IPL_DEPTH_8U, 1);
+	cvDrawContours(im, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
+	Mat seq = Mat(im) < 128;
+	bool **seqBool = BoolPicture::convertBWToBool(seq);
+	int width = seq.cols;
+	int height = seq.rows;
+	
+	bool isThree = false;
 	for (int i = 0; i < width; i++)
 		if (countTrue(true, i, seqBool, height) > 2) {
-			return true;
-		}
+			if (countTrue(true, i, seqBool, height) > 4)
+				return false;
+			isThree = true;
+		} 
+
 	for (int i = 0; i < height; i++)
 		if (countTrue(false, i, seqBool, width) > 2) {
-			return true;
+			if (countTrue(true, i, seqBool, height) > 4)
+				return false;
+			isThree = true;
 		}
 	
 	return false;
