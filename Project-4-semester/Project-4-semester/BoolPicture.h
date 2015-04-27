@@ -12,6 +12,9 @@ public:
 	bool **getPicture();
 	int getWidth();
 	int getHeight();
+	
+	/// to bool
+	static bool **convertBWToBool(Mat picture);
 
 private:
 	bool **picture;
@@ -21,7 +24,5 @@ private:
 	/// Convert imageColor to black and white image.
 	Mat convertToBlackAndWhite(Mat imageColor);
 	
-	/// to bool
-	bool **convertBWToBool(Mat picture);
 };
 

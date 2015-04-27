@@ -3,6 +3,7 @@
 #include "Contours.h"
 #include "Lines.h"
 #include "SearchRelations.h"
+#include "FindContours.h"
 
 using namespace std;
 
@@ -21,14 +22,15 @@ int main() {
 	while (k != '0')
 		k = cvWaitKey();
 	*/
-	Contours *cont = new Contours();
+	//Contours *cont = new Contours();
 	//Lines *lines = new Lines(cont->imageContour);
-	cvDestroyAllWindows();
-
+	
+	FindContours *cont = new FindContours();
 	//SearchRelations *search = new SearchRelations(lines->linesList, cont->all);
 
 	//delete picture;
-	delete cont;
+	//delete cont;
 	//delete lines;
+	cvDestroyAllWindows();
 	return 0;
 }

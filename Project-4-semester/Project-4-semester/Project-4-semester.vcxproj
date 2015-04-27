@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="BoolPicture.cpp" />
     <ClCompile Include="Contours.cpp" />
+    <ClCompile Include="FindContours.cpp" />
     <ClCompile Include="Lines.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SearchRelations.cpp" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="BoolPicture.h" />
     <ClInclude Include="Contours.h" />
+    <ClInclude Include="FindContours.h" />
     <ClInclude Include="Lines.h" />
     <ClInclude Include="SearchRelations.h" />
   </ItemGroup>
