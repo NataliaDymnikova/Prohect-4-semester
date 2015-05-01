@@ -20,6 +20,8 @@ private:
 	void allContours();
 	// 
 	void recAllContours(CvSeq* current);
+	// Return true if something similar not exist in linesList
+	bool canAddONot(CvPoint *newLine);
 
 	// is circle
 	bool isCircle(CvSeq *seq);
@@ -31,8 +33,10 @@ private:
 	bool isFlagIn(CvSeq *seq);
 	// is flag like - |>
 	bool isFlagOut(CvSeq *seq);
+	// Number of elements in array
+	int countTrue(bool isWidth, int number, bool **mas, int size);
 	//
-	int countTrue(bool isWidth, int number, bool **array, int size);
+	void findRelations();
 
 
 	// Black And White
@@ -45,11 +49,14 @@ private:
 	IplImage *imageContour = 0;
 	// Image of result
 	IplImage *result = 0;
+	// Image of relations
+	IplImage *imageRelations = 0;
 
 	// All contours as image
-	list<IplImage*> *all;
+	list<IplImage*> *all = 0;
 	// All contours
 	list<CvSeq *> *allContoursSeq = 0;
-
+	// All lines - relations
+	list<vector<int>> *linesList = 0;
 };
 
