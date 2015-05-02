@@ -37,7 +37,8 @@ private:
 	int countTrue(bool isWidth, int number, bool **mas, int size);
 	//
 	void findRelations();
-
+	//
+	CvPoint nearestPoint(CvPoint point);
 
 	// Black And White
 	IplImage* imageBW = 0;

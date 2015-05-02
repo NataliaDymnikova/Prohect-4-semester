@@ -2,6 +2,7 @@
 #include "FindContours.h"
 
 #include <math.h>
+#include "opencv\ml.h"
 
 #include "BoolPicture.h"
 
@@ -149,11 +150,11 @@ void FindContours::deleteContours() {
 	int j = 0;
 	// delete first contour - contour of image
 	allContoursSeq->pop_front();
-	for each (CvSeq *current in *allContoursSeq) {
+	for (CvSeq *current : *allContoursSeq) {
 		CvRect rect1 = cvBoundingRect(current);
 		flag = false;
 		j = 0;
-		for each (CvSeq *current2 in *allContoursSeq) {
+		for (CvSeq *current2 : *allContoursSeq) {
 			if (i <= j)
 				continue;
 			CvRect rect2 = cvContourBoundingRect(current2);
@@ -264,30 +265,10 @@ int FindContours::countTrue(bool isWidth, int number, bool **array, int size) {
 void FindContours::findRelations() {
 	imageRelations = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	linesList = new list<vector<int>>();
-	/*IplImage *imageLines = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	cvCopyImage(imageBW, imageLines);
-	linesList = new list<vector<int>>();
-
-	for each (CvSeq *current in *allContoursSeq) {
-		CvRect *rect = new CvRect(cvBoundingRect(current, 0));
-		double area = fabs(cvContourArea(current));
-		double area2 = rect->height * rect->width;
-		if (isCircle(current) || area2 < 1.3 * area) {
-			cvDrawRect(imageLines, cvPoint(rect->x - 5, rect->y - 5)
-				, cvPoint(rect->x + rect->width + 5, rect->y + rect->height + 5)
-				, cvScalar(255, 255, 255), CV_FILLED);
-		}
-	}
 	
-	CvMemStorage* storage = cvCreateMemStorage(0);
-	Mat bin2 = (Mat)imageLines < 178;
-	imageLines = new IplImage(bin2);
-	cvCanny(imageLines, imageLines, 0, 256);
-	*/
 	CvMemStorage* storage = cvCreateMemStorage(0);
 	IplImage *imageLines = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	cvCanny(imageContour, imageLines, 0, 256);
-
 
 	CvSeq *lines = cvHoughLines2(imageLines, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI / 180, 1, 25, 20);
 	// нарисуем найденные линии
@@ -305,14 +286,12 @@ void FindContours::findRelations() {
 		linesList->push_back(pointers);
 	}
 
-	// Если две линии пересекаются - сделать их одной.
-	// Сделать 4 линии - оставить самую длинную
 }
 
 
 bool FindContours::canAddONot(CvPoint *newLine) {
 	int temp = max(fabs((double)newLine[0].x - newLine[1].x), fabs((double)newLine[0].y - newLine[1].y)) * 5;
-	for each (vector<int> line in *linesList) {
+	for (vector<int> line : *linesList) {
 		if (fabs(fabs((double)newLine[0].x - line[0]) + fabs((double)newLine[0].y - line[1])
 			+ fabs((double)newLine[1].x - line[2]) + fabs((double)newLine[1].y - line[3])) < temp)
 			return false;
@@ -321,4 +300,17 @@ bool FindContours::canAddONot(CvPoint *newLine) {
 }
 
 
-
+CvPoint FindContours::nearestPoint(CvPoint point) {
+	float minRad = -1;
+	CvPoint pointRes = cvPoint(0, 0);
+	for (CvSeq *current : *allContoursSeq) {
+		float currentRadius = -1;
+		CvPoint curretPoint = cvPoint(0, 0);
+		// find radius and pointRes
+		if (currentRadius < minRad || minRad == -1) {
+			minRad = currentRadius;
+			pointRes = curretPoint;
+		}
+	}
+	return pointRes;
+}
