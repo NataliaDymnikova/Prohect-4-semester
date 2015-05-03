@@ -39,6 +39,8 @@ private:
 	void findRelations();
 	//
 	CvPoint nearestPoint(CvPoint point);
+	//
+	float distance(CvPoint first, CvPoint second);
 
 	// Black And White
 	IplImage* imageBW = 0;
@@ -48,6 +50,8 @@ private:
 	CvSeq* contours = 0;
 	// Contours
 	IplImage *imageContour = 0;
+	// Copy contours
+	IplImage *imageContourCopy = 0;
 	// Image of result
 	IplImage *result = 0;
 	// Image of relations
