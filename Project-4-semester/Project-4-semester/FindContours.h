@@ -56,12 +56,26 @@ private:
 	IplImage *result = 0;
 	// Image of relations
 	IplImage *imageRelations = 0;
-
+	
 	// All contours as image
-	list<IplImage*> *all = 0;
+	list<IplImage *> *all = 0;
 	// All contours
 	list<CvSeq *> *allContoursSeq = 0;
 	// All lines - relations
 	list<vector<int>> *linesList = 0;
+
+	class ContourAndSize {
+	public:
+		bool **picture;
+		int height;
+		int width;
+		CvPoint leftTop;
+		ContourAndSize(bool **contour, int h, int w, CvPoint corner) 
+			: picture(contour), height(h), width(w), leftTop(corner)
+		{
+		}
+	};
+	// All new contours as image
+	list<ContourAndSize> *allNewContours = 0;
 };
 

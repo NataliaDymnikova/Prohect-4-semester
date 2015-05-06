@@ -50,6 +50,7 @@ void FindContours::findContours()
 	imageContour = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	imageContourCopy = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	result = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	allNewContours = new list<ContourAndSize>();
 	for (CvSeq *current : *allContoursSeq) {
 		cvDrawContours(imageContour, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0, 1);
 		cvDrawContours(imageContourCopy, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0, 1);
@@ -63,6 +64,12 @@ void FindContours::findContours()
 			cvDrawCircle(imageContourCopy, cvPoint(center.x, center.y), radius * 1.1
 				, cvScalar(205, 205, 205), CV_FILLED);
 
+			CvRect rect = cvBoundingRect(current, 0);
+			IplImage *im = cvCreateImage(cvSize(rect.width, rect.height), IPL_DEPTH_8U, 1);
+			cvDrawCircle(im, cvPoint(center.x, center.y), radius, cvScalar(0, 0, 0), 0);
+			Mat seq = Mat(im) < 128;
+			allNewContours->push_back(ContourAndSize(BoolPicture::convertBWToBool(seq)
+				, rect.height, rect.width, cvPoint(rect.x, rect.y)));
 		}
 		else if (isRectangle(current)) {
 			CvRect *rect = new CvRect(cvBoundingRect(current, 0));
@@ -74,6 +81,13 @@ void FindContours::findContours()
 			cvDrawRect(imageContourCopy, cvPoint(rect->x - temp, rect->y - temp)
 				, cvPoint((rect->x + rect->width + 2 * temp), (rect->y + rect->height + 2* temp))
 				, cvScalar(205, 205, 205), CV_FILLED);
+
+			IplImage *im = cvCreateImage(cvSize(rect->width, rect->height), IPL_DEPTH_8U, 1);
+			cvDrawRect(im, cvPoint(rect->x, rect->y)
+				, cvPoint(rect->x + rect->width, rect->y + rect->height), cvScalar(0, 0, 0), 0);
+			Mat seq = Mat(im) < 128;
+			allNewContours->push_back(ContourAndSize(BoolPicture::convertBWToBool(seq)
+				, rect->height, rect->width, cvPoint(rect->x, rect->y)));
 		}
 		else if (isRhomb(current)) {
 			CvMemStorage* storageRhomb = cvCreateMemStorage(0);
@@ -81,7 +95,7 @@ void FindContours::findContours()
 			CvPoint2D32f pointsf[4];
 			cvBoxPoints(rhomb, pointsf);
 			CvPoint pointsi[4];
-			for (int i = 0; i<4; i++) {
+			for (int i = 0; i < 4; i++) {
 				pointsi[i] = cvPointFrom32f(pointsf[i]);
 			}
 			CvPoint* countours[1] = { pointsi };
@@ -93,6 +107,12 @@ void FindContours::findContours()
 			cvDrawRect(imageContourCopy, cvPoint(rect->x - temp, rect->y - temp)
 				, cvPoint((rect->x + rect->width + 2 * temp), (rect->y + rect->height + 2 * temp))
 				, cvScalar(205, 205, 205), CV_FILLED);
+
+			IplImage *im = cvCreateImage(cvSize(rect->width, rect->height), IPL_DEPTH_8U, 1);
+			cvDrawPolyLine(im, countours, countours_n, 4, 1, cvScalar(0, 0, 0), 0);
+			Mat seq = Mat(im) < 128;
+			allNewContours->push_back(ContourAndSize(BoolPicture::convertBWToBool(seq)
+				, rect->height, rect->width, cvPoint(rect->x, rect->y)));
 		}
 		else if (isFlagIn(current)) {
 			cvDrawContours(result, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
@@ -102,6 +122,12 @@ void FindContours::findContours()
 			cvDrawRect(imageContourCopy, cvPoint(rect->x - temp, rect->y - temp)
 				, cvPoint((rect->x + rect->width + 2 * temp), (rect->y + rect->height + 2 * temp))
 				, cvScalar(205, 205, 205), CV_FILLED);
+
+			IplImage *im = cvCreateImage(cvSize(rect->width, rect->height), IPL_DEPTH_8U, 1);
+			cvDrawContours(im, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
+			Mat seq = Mat(im) < 128;
+			allNewContours->push_back(ContourAndSize(BoolPicture::convertBWToBool(seq)
+				, rect->height, rect->width, cvPoint(rect->x, rect->y)));
 		}
 		else if (isFlagOut(current)) {
 			cvDrawContours(result, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
@@ -111,6 +137,12 @@ void FindContours::findContours()
 			cvDrawRect(imageContourCopy, cvPoint(rect->x - temp, rect->y - temp)
 				, cvPoint((rect->x + rect->width + 2 * temp), (rect->y + rect->height + 2 * temp))
 				, cvScalar(205, 205, 205), CV_FILLED);
+
+			IplImage *im = cvCreateImage(cvSize(rect->width, rect->height), IPL_DEPTH_8U, 1);
+			cvDrawContours(im, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
+			Mat seq = Mat(im) < 128;
+			allNewContours->push_back(ContourAndSize(BoolPicture::convertBWToBool(seq)
+				, rect->height, rect->width, cvPoint(rect->x, rect->y)));
 		}
 		else
 		{
@@ -287,7 +319,6 @@ void FindContours::findRelations() {
 		pointers.push_back(line[1].y);
 		linesList->push_back(pointers);
 	}
-
 }
 
 
@@ -305,6 +336,7 @@ bool FindContours::canAddONot(CvPoint *newLine) {
 CvPoint FindContours::nearestPoint(CvPoint point) {
 	float minRad = -1;
 	CvPoint pointRes = cvPoint(0, 0);
+	/*
 	for (CvSeq *current : *allContoursSeq) {
 		float currentRadius = -1;
 		CvPoint curretPoint = cvPoint(0,0);
@@ -335,7 +367,33 @@ CvPoint FindContours::nearestPoint(CvPoint point) {
 			minRad = currentRadius;
 			pointRes = curretPoint;
 		}
+		
 		//
+	}
+	*/
+
+
+
+
+	for (ContourAndSize current : *allNewContours) {
+		float currentRadius = -1;
+		CvPoint curretPoint = cvPoint(0, 0);
+
+		for (int i = 0; i < current.width; i++) {
+			for (int j = 0; j < current.height; j++) {
+				if (!current.picture[j][i]) {
+					float dist = distance(point, cvPoint(i + current.leftTop.x, j + current.leftTop.y));
+					if (dist < currentRadius || currentRadius == -1) {
+						currentRadius = dist;
+						curretPoint = cvPoint(i + current.leftTop.x, j +current.leftTop.y);
+					}
+				}
+			}
+		}
+		if ((currentRadius < minRad || minRad == -1) && currentRadius != -1) {
+			minRad = currentRadius;
+			pointRes = curretPoint;
+		}
 	}
 
 	return pointRes;
