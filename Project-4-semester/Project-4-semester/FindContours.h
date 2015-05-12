@@ -77,5 +77,16 @@ private:
 	};
 	// All new contours as image
 	list<ContourAndSize> *allNewContours = 0;
+
+
+	// Try to find text
+	void tryToFindText();
+	// Text
+	list<Rect *> *allText = 0;
+
+	// Try to delete cycle.
+	void tryToDeleteCycle();
+	// Main contour
+	CvSeq *mainContour = 0;
 };
 

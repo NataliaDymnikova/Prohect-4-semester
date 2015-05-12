@@ -3,6 +3,10 @@
 
 #include <math.h>
 #include "opencv\ml.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
 
 #include "BoolPicture.h"
 
@@ -46,15 +50,22 @@ void FindContours::findContours()
 	assert(contours != 0);
 
 	allContours();
+	tryToDeleteCycle();
 
 	imageContour = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	imageContourCopy = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	result = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	allNewContours = new list<ContourAndSize>();
+
+	//tryToFindText();
+	//cvWaitKey(0);
 	for (CvSeq *current : *allContoursSeq) {
+
 		cvDrawContours(imageContour, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0, 1);
 		cvDrawContours(imageContourCopy, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0, 1);
-
+		if (current == mainContour)
+			continue;
+		
 		if (isCircle(current)) {
 			CvPoint2D32f center;
 			float radius;
@@ -336,45 +347,7 @@ bool FindContours::canAddONot(CvPoint *newLine) {
 CvPoint FindContours::nearestPoint(CvPoint point) {
 	float minRad = -1;
 	CvPoint pointRes = cvPoint(0, 0);
-	/*
-	for (CvSeq *current : *allContoursSeq) {
-		float currentRadius = -1;
-		CvPoint curretPoint = cvPoint(0,0);
-		
-		// find radius and pointRes
-		CvRect rect = cvBoundingRect(current, 0);
-		IplImage *im = cvCreateImage(cvSize(rect.width, rect.height), IPL_DEPTH_8U, 1);
-		cvDrawContours(im, current, cvScalar(0, 0, 0), cvScalar(0, 0, 0), 0);
-		Mat seq = Mat(im) < 128;
-		bool **seqBool = BoolPicture::convertBWToBool(seq);
-		int width = seq.cols;
-		int height = seq.rows;
-
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				if (seqBool[j][i]) {
-					float dist = distance(point, cvPoint(i, j));
-					if (dist < currentRadius || currentRadius == -1) {
-						currentRadius = dist;
-						curretPoint = cvPoint(i, j);
-					}
-
-				}
-			}
-
-		}
-		if ((currentRadius < minRad || minRad == -1) && currentRadius != -1) {
-			minRad = currentRadius;
-			pointRes = curretPoint;
-		}
-		
-		//
-	}
-	*/
-
-
-
-
+	
 	for (ContourAndSize current : *allNewContours) {
 		float currentRadius = -1;
 		CvPoint curretPoint = cvPoint(0, 0);
@@ -401,4 +374,100 @@ CvPoint FindContours::nearestPoint(CvPoint point) {
 
 float FindContours::distance(CvPoint first, CvPoint second) {
 	return ((first.x - second.x) * (first.x - second.x) + (first.y - second.y) * (first.y - second.y));
+}
+
+
+/*
+
+*/
+
+void FindContours::tryToFindText() {
+	/*Mat large = Mat(image);
+	Mat rgb;
+	// downsample and use it for processing
+	pyrDown(large, rgb);
+	Mat small;
+	cvtColor(rgb, small, CV_BGR2GRAY);
+	// morphological gradient
+	Mat grad;
+	Mat morphKernel = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
+	morphologyEx(small, grad, MORPH_GRADIENT, morphKernel);
+	// binarize
+	Mat bw;
+	threshold(grad, bw, 0.0, 255.0, THRESH_BINARY | THRESH_OTSU);
+	// connect horizontally oriented regions
+	Mat connected;
+	morphKernel = getStructuringElement(MORPH_RECT, Size(9, 1));
+	morphologyEx(bw, connected, MORPH_CLOSE, morphKernel);
+	// find contours
+	Mat mask = Mat::zeros(bw.size(), CV_8UC1);
+	vector<vector<Point>> contours;
+	vector<Vec4i> hierarchy;
+	cv::findContours(connected, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	// filter contours
+	for (int idx = 2; idx >= 0; idx = hierarchy[idx][0])
+	{
+		Rect rect = boundingRect(contours[idx]);
+		Mat maskROI(mask, rect);
+		maskROI = Scalar(0, 0, 0);
+		// fill the contour
+		drawContours(mask, contours, idx, Scalar(255, 255, 255), CV_FILLED);
+		// ratio of non-zero pixels in the filled region
+		double r = (double)countNonZero(maskROI) / (rect.width*rect.height);
+
+		if (r > .55
+			&&
+			(rect.height > 8 && rect.width > 8)
+			)
+		{
+			rectangle(rgb, rect, Scalar(0, 255, 0), 2);
+		}
+	}
+*/
+	IplImage *rgb = cvCreateImage(cvGetSize(image), IPL_DEPTH_16U, 1);
+	for (CvSeq *current : *allContoursSeq) {
+		Rect *rect = new Rect(cvBoundingRect(current, 0)); 
+		double r = (double)current->delta_elems / (rect->width * rect->height);
+		if (r > 0.03)
+			cvDrawRect(rgb, cvPoint(rect->x, rect->y)
+			, cvPoint(rect->x + rect->width, rect->y + rect->height), cvScalar(0, 255, 0), 1);
+	}
+
+	cvShowImage("aaaaaaaa", rgb);
+}
+
+void FindContours::tryToDeleteCycle() {
+	int sum = 0;
+	int max = -1;
+	CvSeq *maxSeq = 0;
+	for (CvSeq *current : *allContoursSeq) {
+		int c = fabs(cvContourArea(current));
+		if (max == -1 || max < c) {
+			max = c;
+			maxSeq = current;
+		}
+		sum += c;
+	}
+	sum -= max;
+ 	mainContour = maxSeq; 
+	int middle = sum / (allContoursSeq->size() - 1);
+	list<CvSeq *> *forDelete = new list<CvSeq *>();
+	for (CvSeq *current : *allContoursSeq) {
+		int c = fabs(cvContourArea(current));
+		if (c == max)
+			continue;
+		if (middle <= 0.5 * c && middle <= c)
+			forDelete->push_back(current);
+	} 
+	for (CvSeq *current : *forDelete) {
+		bool flag = false;
+		for (CvSeq *current2 : *allContoursSeq) {
+			if (current == current2){
+				flag = true;
+				break;
+			}
+		}
+		if (flag)
+			allContoursSeq->remove(current);
+	}
 }
